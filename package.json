@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "mqtt": "^4.3.7",
+    "mysql": "^2.18.1"
+  },
+  "name": "mqtttomysql",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NMSLSB-001/mqttToMysql.git"
+  },
+  "author": "zaofei",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NMSLSB-001/mqttToMysql/issues"
+  },
+  "homepage": "https://github.com/NMSLSB-001/mqttToMysql#readme"
+}
