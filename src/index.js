@@ -30,7 +30,7 @@ var client = mqtt.connect(Broker_URL, options);
 var clientInfo = [Broker_URL, options];
 client.on("connect", mqtt_connect);
 client.on("reconnect", mqtt_reconnect);
-worker_thread(clientInfo)
+worker_thread(clientInfo);
 client.on("message", mqtt_messsageReceived);
 client.on("close", mqtt_close);
 
@@ -154,7 +154,8 @@ function insert_message(topic, message_str, packet) {
     console.log("Message added: " + message);
   });
 
-  callTime(message);
+  comparison(message);
+  // callTime(message);
 }
 
 // get time
@@ -185,7 +186,7 @@ function countInstances(message_str) {
 
 // sleep for a while
 function sleep(d) {
-  for (var t = Date.now(); Date.now() - t <= d; );
+  for (var t = Date.now(); Date.now() - t <= d;);
 }
 
 // get usrsname car plate
@@ -197,23 +198,32 @@ function comparison(message) {
     if (err) {
       throw err;
     }
+    console.log(results)
     if (results[0] != null) {
-      console.log(results);
       for (i in results) {
         msg = results[i];
         client.publish(
           "inTopic",
           msg["studentName"].toString() +
-            msg["studyYear"].toString() +
-            msg["studyGroup"].toString(),
+          msg["studyYear"].toString() +
+          msg["studyGroup"].toString(),
           { qos: 0, retain: true }
         );
         console.log(
           "debug",
           msg["studentName"].toString() +
-            msg["studyYear"].toString() +
-            msg["studyGroup"].toString()
+          msg["studyYear"].toString() +
+          msg["studyGroup"].toString()
         );
+        console.log(message)
+        var detCarPlate = message
+        addToHistory(
+          detCarPlate,
+          1,
+          msg["studentName"].toString(),
+          msg["studyYear"].toString() + msg["studyGroup"].toString()
+        );
+
         var sname = msg["studentName"].toString();
         var sclass =
           msg["studyYear"].toString() + " " + msg["studyGroup"].toString();
@@ -231,12 +241,12 @@ function comparison(message) {
         client.publish(
           "outTopic",
           string1 +
-            sname +
-            string2 +
-            sclass +
-            string3 +
-            carplatenumber +
-            string4,
+          sname +
+          string2 +
+          sclass +
+          string3 +
+          carplatenumber +
+          string4,
           { qos: 0, retain: false },
           (error) => {
             if (error) {
@@ -245,7 +255,47 @@ function comparison(message) {
           }
         );
       }
+    } else {
+      console.log(message)
+      var detCarPlate = message
+      addToHistory(detCarPlate, 0);
     }
+  });
+}
+
+function addToHistory(
+  detCarPlate,
+  isAuthorized,
+  detStudentName,
+  detStudentClass
+) {
+  var num = Math.random();
+  var detConfidence = num.toFixed(2); 
+  var detTimestamp = new Date().getTime() / 1000
+  var detImageLink = "";
+  var sql1 = "INSERT INTO ?? (??,??,??,??,??,??,??) VALUES (?,?,?,?,?,?,?)";
+  var params1 = [
+    "dataHistory",
+    "detTimestamp",
+    "detCarPlate",
+    "detConfidence",
+    "isAuthorized",
+    "detStudentName",
+    "detStudentClass",
+    "detImageLink",
+    detTimestamp,
+    detCarPlate,
+    detConfidence,
+    isAuthorized,
+    detStudentName,
+    detStudentClass,
+    detImageLink,
+  ];
+  sql1 = mysql.format(sql1, params1);
+
+  connection.query(sql1, function (error, results) {
+    if (error) throw error;
+    console.log("Message added: " + detCarPlate);
   });
 }
 
@@ -280,4 +330,4 @@ function callTime(message) {
   });
 }
 
-function carplateCall() {}
+function carplateCall() { }
