@@ -1,21 +1,37 @@
+const serviceId = "1000000001";
 var querystring = require("querystring");
 var http = require("http");
+var axios = require("axios");
 var fs = require("fs");
 const { workerData, parentPort } = require("worker_threads");
 
-statusUpdate();
+var intervalid = setInterval(statusUpdate, 20000);
+console.log("Intervalid", intervalid)
 
 function statusUpdate() {
-  while (1) {
-    timeStamp = getTimestamp();
-    var post_data = {
-      serviceId: 1,
+  var timeStamp = getTimestamp();
+  var post_data = JSON.stringify();
+  console.log(timeStamp);
+  StatusPost(timeStamp);
+  console.log("Sending Out");
+}
+
+function StatusPost(timeStamp) {
+  axios
+    .post("http://localhost:8887/api/updateDataProStatus", {
+      serviceId: serviceId,
       isDaProRunning: 1,
       isDaProRunningLC: timeStamp,
-    };
-    PostCode(post_data);
-    sleep(500);
-  }
+    })
+    .then((res) => {
+      console.log(`Status Code: ${res.statusCode}`);
+      console.log(res);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+
+  sleep(15000);
 }
 
 function getTimestamp() {
@@ -33,18 +49,23 @@ function PostCode(post_data) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(post_data),
+      "Content-Length": post_data.length,
     },
   };
 
   // Set up the request
   var post_req = http.request(post_options, function (res) {
     res.setEncoding("utf8");
-    res.on("data", function (chunk) {
-      console.log("Response: " + chunk);
+    console.log(`Status Code: ${res.statusCode}`);
+    res.on("data", (d) => {
+      process.stdout.write(d);
     });
   });
 
+  post_req.on("error", (error) => {
+    console.error(error);
+  });
+  console.log("1");
   // post the data
   post_req.write(post_data);
   post_req.end();
