@@ -1,4 +1,6 @@
 const deviceId = "1111111111";
+var previous = [];
+/** 
 const { Worker } = require("worker_threads");
 
 const runSerice = (workerData) => {
@@ -12,7 +14,7 @@ const runSerice = (workerData) => {
     });
   });
 };
-
+*/
 const { statSync } = require("fs");
 var mqtt = require("mqtt"); // https://www.npmjs.com/package/mqtt
 var Topic = "search"; // subscribe to all topics
@@ -29,7 +31,7 @@ var options = {
 
 var client = mqtt.connect(Broker_URL, options);
 var clientInfo = [Broker_URL, options];
-worker_thread(clientInfo);
+// worker_thread(clientInfo);
 client.on("connect", mqtt_connect);
 client.on("reconnect", mqtt_reconnect);
 client.on("message", mqtt_messsageReceived);
@@ -71,18 +73,43 @@ function after_publish() {
 
 // receive a message from MQTT broker
 function mqtt_messsageReceived(topic, message, packet) {
-  var message_str = message.toString(); //convert byte array to string
-  console.log("message to string", message_str);
-  message_str = message_str.replace(/\n$/, ""); //remove new line
-  // message_str = message_str.toString().split("|");
-  console.log("message to params array", message_str);
+  var message_str = message.toString(); // convert byte array to string
   // payload syntax: clientID,topic,message
   if (message_str.length == 0) {
     console.log("Invalid payload");
   } else {
-    insert_message(topic, message_str, packet);
-    // console.log(message_arr);
+    message_str_obj = receivedDataProcessing(message_str);
+    if (isDuplicate(message_str_obj["carPlate"])) {
+      insert_message(topic, message_str_obj, packet);
+      console.log("Insert successfully");
+    }
+    previous.shift();
+    previous.push(message_str_obj["carPlate"]);
   }
+}
+function receivedDataProcessing(message_str) {
+  console.log("Debug 1:" + message_str);
+  let decodeMessageStr = Buffer.from(message_str,'base64').toString('utf-8')
+  console.log("Debug 2:" + decodeMessageStr);
+  messageResult = JSON.parse(decodeMessageStr);
+  // var decodeMessageStr = Buffer.from(message, "base64").toString(); // convert encode to decode
+  // console.log("message to string", message_str);
+  // console.log("Debug 2:" + message_str);
+  // console.log("Debug 3:" + message_str["timestamp"]);
+  // message_str = message_str.replace(/\n$/, ""); //remove new line
+  // message_str = message_str.toString().split("|");
+  // console.log("message to params array", message_str);
+  return messageResult;
+}
+
+function isDuplicate(carPlate) {
+  var isDup = true;
+  for (var i = 0; i < 10; i++) {
+    if (carPlate == previous[i]) {
+      isDup = false;
+    }
+  }
+  return isDup;
 }
 
 function mqtt_close() {
@@ -133,7 +160,7 @@ function insert_message(topic, message_str, packet) {
   // var clientID= message_arr[0];
   // var message = message_arr[1];
   var clientID = "zan shi mei you";
-  var message = extract_string(message_str);
+  var message = JSON.stringify(message_str)
   var date = new Date();
   var currTime = currentTime();
   var sql1 = "INSERT INTO ?? (??,??,??,??,??) VALUES (?,?,?,?,?)";
@@ -173,10 +200,10 @@ function currentTime() {
 
 // split a string into an array of substrings
 function extract_string(message_str) {
-  var message_arr = message_str.split(","); //convert to array
-  var message = message_arr[0];
-  message = message.toUpperCase();
-  message = message.replace(/\s*/g, "");
+  // var message_arr = message_str.split(","); //convert to array
+  // var message = message_arr[0];
+  // message = message_str.toUpperCase();
+  message = message_str.replace(/\s*/g, "");
   return message;
 }
 
@@ -276,7 +303,8 @@ function addToHistory(
   var detConfidence = num.toFixed(2);
   var detTimestamp = new Date().getTime() / 1000;
   var detImageLink = "";
-  var sql1 = "INSERT INTO ?? (??,??,??,??,??,??,??,??) VALUES (?,?,?,?,?,?,?,?)";
+  var sql1 =
+    "INSERT INTO ?? (??,??,??,??,??,??,??,??) VALUES (?,?,?,?,?,?,?,?)";
   var params1 = [
     "dataHistory",
     "deviceId",
