@@ -21,8 +21,8 @@ const runSerice = (workerData) => {
 const { statSync } = require("fs");
 var mqtt = require("mqtt"); // https://www.npmjs.com/package/mqtt
 var Topic = "search"; // subscribe to all topics
-var Broker_URL = "mqtt://mqtt.drivethru.top";
-var Database_URL = "database.drivethru.top";//"dev.database.drivethru.top";
+var Broker_URL = "mqtt://";
+var Database_URL = "";//"dev.database.drivethru.top";
 
 var options = {
   clientId: "MyMQTT",
@@ -127,8 +127,8 @@ var mysql = require("mysql"); // https://www.npmjs.com/package/mysql
 // Create Connection
 var connection = mysql.createConnection({
   host: Database_URL,
-  user: "cto",//"normal_user",//"root",
-  password: "123456Aa",//"QWEasd1234", //"123456",
+  user: "",
+  password: "",
   port: 3306,
   database: "mqttold",
 });
