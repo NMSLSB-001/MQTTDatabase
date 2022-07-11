@@ -63,7 +63,7 @@ function PostCode(post_data) {
   });
 
   post_req.on("error", (error) => {
-    console.error(error);
+    console.error(error.code);
   });
   console.log("1");
   // post the data
